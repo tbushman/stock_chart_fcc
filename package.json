@@ -1,0 +1,34 @@
+{
+  "name": "stock_chart",
+  "version": "0.0.0",
+  "private": true,
+  "description": "FCC Stock Chart",
+  "engines": {
+    "node": "6.7.0"
+  },
+  "repository": {
+    "type": "git"
+  },
+  "scripts": {
+    "start": "node app"
+  },
+  "main": "app.js",
+  "dependencies": {
+    "async": "^2.1.2",
+    "body-parser": "~1.15.0",
+    "connect-mongo": "^1.2.1",
+    "cookie-parser": "~1.4.1",
+    "dotenv": "^2.0.0",
+    "express": "~4.13.4",
+    "express-session": "^1.13.0",
+    "mongo": "^0.1.0",
+    "mongodb": "^2.2.10",
+    "mongoose": "^4.1.9",
+    "morgan": "~1.7.0",
+    "multer": "^1.2.0",
+    "pug": "^2.0.0-beta6",
+    "underscore": "^1.8.3",
+    "url": "^0.11.0",
+    "yahoo-finance": "^0.2.14"
+  }
+}

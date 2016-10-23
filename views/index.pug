@@ -1,0 +1,14 @@
+extends layout
+block page
+	- var menu = 'index'
+block content
+	- var dataString = JSON.stringify(data)
+	input(type='hidden', class='data-json', value= dataString)
+	if (data.length === 0)
+		h3 Add a stock to the chart by symbol lookup
+	else
+		h3 Search results
+		svg#chart.col-xs-12.col-md-6(width = '400', height = '300', class='vis')
+	script(type="text/javascript").
+		var incoming = $('.poll-data-json').val();
+		var polldata = JSON.parse(incoming);							

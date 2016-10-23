@@ -1,0 +1,11 @@
+extends layout
+block page
+	- var menu = 'search'
+block content
+	div.col-xs-12.col-md-6
+		h4 Add a stock by symbol:
+		form(enctype="multipart/form-data", method="POST", action="/search")
+			div.form-group
+				label(for='symbol') Search term:
+				input.form-control(id="symbol", type="text", name="symbol")
+			button.btn.btn-primary(type="submit") Search
