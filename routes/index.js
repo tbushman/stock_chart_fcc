@@ -28,7 +28,6 @@ router.get('/', function(req, res, next) {
 		},
 		function(callback) {
 			async.map(lookup, getStockInfo, function(err, result){
-				console.log(result)
 				var prop = Object.getOwnPropertyNames(result)
 				
 				for (var i in result) {
@@ -45,7 +44,6 @@ router.get('/', function(req, res, next) {
 		if (err) {
 			return next(err)
 		}
-		console.log(results)
 		return res.render('index', {
 			query: lookup,
 			data: results
