@@ -16,7 +16,6 @@
   "dependencies": {
     "async": "^2.1.2",
     "body-parser": "~1.15.0",
-    "c3": "^0.4.11",
     "connect-mongo": "^1.2.1",
     "cookie-parser": "~1.4.1",
     "dotenv": "^2.0.0",
