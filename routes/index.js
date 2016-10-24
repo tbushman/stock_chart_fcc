@@ -1,6 +1,7 @@
 var express = require('express');
 var Stock = require('../models/stocks');
 var multer  = require('multer');
+var _ = require('underscore');
 var url = require('url');
 var dotenv = require('dotenv');
 var async = require("async");
@@ -14,34 +15,42 @@ dotenv.load();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-	
-	Stock.find({}, 'data', function(err, docs){
+	var lookup = ['AAPL', 'GOOGL'];
+	var results = []
+	async.series([
+		function(callback) {
+			async.map(lookup, loadSnapshot, function(err, result){
+				for (var i in result) {
+					results.push(result[i])					
+				}
+				callback();
+			})
+		},
+		function(callback) {
+			async.map(lookup, getStockInfo, function(err, result){
+				console.log(result)
+				var prop = Object.getOwnPropertyNames(result)
+				
+				for (var i in result) {
+					
+					var arrays = _.find(result[prop[i]], function(item) {
+						return Array.isArray(item)
+					})
+					results[i].values = arrays;
+				}
+				callback()
+			})
+		}
+	], function(err) {
 		if (err) {
-			return next(err);
+			return next(err)
 		}
-		if (!docs) {
-			yahooFinance.snapshot({ 
-				symbols: ['AAPL', 'GOOGL'],
-				fields: ['s', 'n', 'd1', 'l1'] 
-			}, function (err, quote) {
-
-				async.map(Object.keys(quote), getStockInfo, function(err, result){
-					//console.log(result) //array
-					return res.render('index', {
-						name: quote.name,
-						symbol: quote.symbol,
-						l1: quote.lastTradePriceOnly,
-						d1: quote.lastTradeDate,
-						data: result
-					});
-				})
-			});
-		}
-		return res.render('index', { 
-			data: docs
+		console.log(results)
+		return res.render('index', {
+			query: lookup,
+			data: results
 		});
 	})
-	
 });
 
 
@@ -114,18 +123,38 @@ router.post('/add', upload.array(), function(req, res, next) {
 	
 });
 
+function loadSnapshot(lookup, callback) {
+		yahooFinance.snapshot({ 
+			symbol: lookup,
+			fields: ['s', 'n', 'd1', 'l1'] 
+		}, function (err, quote) {
+			if (err) {
+				return callback(err);
+			}
+			var quotes = {
+				key: quote.symbol,
+				values: []
+			}
+			callback(null, quotes);
+		});
+	
+}
+
+
+
 function getStockInfo(lookup, callback) {
+	
 	var to = new Date();
 	var year = to.getFullYear();
 	var month = to.getMonth();
 	var day = to.getDate();
-	
+	//console.log(to)
 	var makeDate = new Date(year-1, month, day); 
 	var histDate = new Date();
-	histDate.setTime(newDate.getTime());
-	
+	histDate.setTime(makeDate.getTime());
+
 	yahooFinance.historical({
-		symbols: lookup,
+		symbols: [lookup],
 		from: histDate,
 		to: to
 	}, function(error, results){

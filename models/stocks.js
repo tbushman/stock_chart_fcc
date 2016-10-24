@@ -5,13 +5,20 @@ var Stocks = new Schema({
 	name: String,
 	symbol: String,
 	data: [{
+		open: Number,
+		high: Number,
+		low: Number,
+		close: Number,
+		volume: Number,
+		adjClose: Number,
 		symbol: String,
-		date: Date,
-		price: Number
+		date: Date
 	}],
 	snapshot: {
-		d1: String,
-		l1: String
+		symbol: String,
+		name: String,
+		lastTradeDate: Date,
+		lastTradePriceOnly: Number
 	}
 }, { collection: 'fcc_stocks' });
 

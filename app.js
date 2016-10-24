@@ -14,7 +14,7 @@ dotenv.load();
 
 var routes = require('./routes/index');
 
-var User = require('./models/user');
+var User = require('./models/stocks');
 
 var app = express();
 
