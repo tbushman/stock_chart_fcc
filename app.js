@@ -4,6 +4,7 @@ var path = require('path');
 var _ = require('underscore');
 var mongoose = require('mongoose');
 var session = require('express-session');
+var MongoStore = require('connect-mongo')(session); //let connect-mongo access session
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
@@ -29,11 +30,21 @@ app.locals.appTitle = "FCC Stock Chart";
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+
+var uri = process.env.DEVDB;// || process.env.MONGOLAB_URI;
+
+mongoose.connect(uri/*, {authMechanism: 'ScramSHA1'}*/);
+var db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));
+
 var sess = {
   	secret: 'keyboard cat',
 	resave: false,
 	saveUninitialized: false,
-	cookie: {}
+	cookie: {},
+	store: new MongoStore({
+		mongooseConnection: db
+	})
 }
 app.use(cookieParser(sess.secret));
 if (app.get('env') === 'production') {
@@ -76,11 +87,6 @@ app.use(function(err, req, res, next) {
 });
 
 
-var uri = process.env.DEVDB;// || process.env.MONGOLAB_URI;
-
-mongoose.connect(uri/*, {authMechanism: 'ScramSHA1'}*/);
-var db = mongoose.connection;
-db.on('error', console.error.bind(console, 'connection error:'));
 
 var port = process.env.PORT || 3001;
 

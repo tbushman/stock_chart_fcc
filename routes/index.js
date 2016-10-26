@@ -1,6 +1,7 @@
 var express = require('express');
 var Stock = require('../models/stocks');
 var multer  = require('multer');
+//var waterfall = require('async-waterfall');
 var _ = require('underscore');
 var url = require('url');
 var dotenv = require('dotenv');
@@ -15,9 +16,24 @@ dotenv.load();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-	var lookup = ['AAPL', 'GOOGL'];
-	var results = []
+	var results = [];
+	var lookup;
 	async.series([
+		function(callback) {
+			getAllDb({}, function(err, result){
+				if (result.length === 0) {
+					lookup = ['AAPL', 'GOOGL'];
+					results = [];
+				} else {
+					lookup = [];
+					for (var i in result) {
+						lookup.push(result[i].key)
+						results.push(result[i])
+					}
+				}
+				callback();
+			})
+		},
 		function(callback) {
 			async.map(lookup, loadSnapshot, function(err, result){
 				for (var i in result) {
@@ -29,9 +45,9 @@ router.get('/', function(req, res, next) {
 		function(callback) {
 			async.map(lookup, getStockInfo, function(err, result){
 				var prop = Object.getOwnPropertyNames(result)
-				
+
 				for (var i in result) {
-					
+
 					var arrays = _.find(result[prop[i]], function(item) {
 						return Array.isArray(item)
 					})
@@ -44,9 +60,16 @@ router.get('/', function(req, res, next) {
 		if (err) {
 			return next(err)
 		}
+		var dots = [];
+		
+		for(var i in results) {
+			for (var j in results[i].values) {
+				dots.push(results[i].values[j])
+			}				
+		}
 		return res.render('index', {
-			query: lookup,
-			data: results
+			data: results,
+			dots: dots
 		});
 	})
 });
@@ -54,87 +77,187 @@ router.get('/', function(req, res, next) {
 
 router.delete('/delete/:symbol', function(req, res, next){
 	var symbol = req.params.symbol;
-	Stock.findOneAndRemove({symbol: symbol}, function(error, data) {
-		if (error) {
-			return next(error);
-		}
-		Stock.find({}, 'data', function(err, docs){
-			if (err) {
-				return next(err);
+	async.waterfall([
+	  function(callback){
+		
+	    //callback(null, 'one', 'two');
+		Stock.findOneAndRemove({key: symbol}, function(error, data) {
+			if (error) {
+				callback(error);
 			}
-			return res.render('index', { 
-				data: docs
-			});
+			callback(null);
+		});
+	  },
+	  function(callback){
+		Stock.find(function(err, docs){
+			if (err) {
+				callback(err);
+			}
+			callback(null, docs);
+		});
+	  }
+	], function (err, result) {
+		if (err) {
+			return next(err);
+		}
+		var dots = [];
+		for(var i in result) {
+			for (var j in result[i].values) {
+				dots.push(result[i].values[j])
+			}				
+		}
+		return res.render('index', { 
+			data: result,
+			dots: dots
 		});
 	});
 });
 
 router.post('/add', upload.array(), function(req, res, next) {
-	var symbol = req.body.symbol;
+	var re = /\s*,\s*/;	
+	var symbol = req.body.symbol.split(re);	
+	console.log(symbol)
+	
+	async.waterfall([
+		function(callback){
+	    	//callback(null, 'one', 'two');
+			Stock.find(function(err, docs) {
+				if (err) {
+					callback(err)
+				}
+				if (docs.length === 0) {
+					callback(null, [], []);
+				} else {
+					callback(null, docs, []);
+				}			
+			})	
+		},
+	  	function(docs, empty_array, callback){
+	    	//callback(null, 'three');
+			var results = docs;
+			var new_stocks = empty_array;
+			async.map(symbol, loadSnapshot, function(err, result){
+				for (var i in result) {
+					results.push(result[i])	
+					new_stocks.push(result[i])				
+				}
+				callback(null, results, new_stocks);
+			})
+	  	},
+		function(results, new_stocks, callback){
+	    	// arg1 now equals 'three' 
+		    //callback(null, 'done');
+			
+			
+			async.map(symbol, getStockInfo, function(err, result){
+				var all_stocks = results;
+				var added_stocks = new_stocks;
+				var prop = Object.getOwnPropertyNames(result)
+				//console.log(results)
+				var index = all_stocks.length - symbol.length;
+				for (var i = 0; i < result.length; i++) {
+					//var initial_length = results.length;
+					var arrays = _.find(result[prop[i]], function(item) {
+						return Array.isArray(item)
+					})
+					all_stocks[index].values = arrays;
+					added_stocks[i].values = arrays;
+					index++;
+				}
+				callback(null, all_stocks, added_stocks);
+			})
+		},
+		function(all_stocks, added_stocks, callback) {
+			var results = all_stocks;
+			var new_stocks = added_stocks;
+			checkDbIndex(symbol, function(err, result){
+				if (result.length === 0) {
+					for (var i in new_stocks) {
+						Stock.insertOne(new_stocks[i], function(error, doc) {
+							if (error) {
+								return console.log(error)
+							}
+						});
+					}
+					callback(null, results);
+				} else {
+					for (var i in result) {
+						//var coords = {x: x, y: y};
+						function myIndexOf(stock) {
+							for (var i = 0; i < new_stocks.length; i++) {
+								if (new_stocks[i].key === stock.key) {
+									return new_stocks[i];
+								}
+							}  
+							return -1;
+						}
+						var stockFilter = myIndexOf(result[i]);
+						if (stockFilter !== -1) {
+							Stock.findOneAndUpdate({key: result[i].key}, stockFilter, {upsert: true}, function(err, docs){
+								if (err) {
+									return console.log(err);
+								}
+							})
+						}
+					}
+					callback(null, results);
+				}				
+			});
+		}
+	], function (err, result) {
+	  // result now equals 'done' 
+		if (err) {
+			return next(err)
+		}
+		var dots = [];
+		
+		for(var i in result) {
+			for (var j in result[i].values) {
+				dots.push(result[i].values[j])
+			}				
+		}
+		return res.render('index', {
+			data: result,
+			dots: dots
+		});
+	});
+	
+});
+
+function getAllDb(lookup, callback) {
+	Stock.find(lookup, function(err, docs) {
+		if (err) {
+			callback(err);
+		}
+		callback(null, docs);
+	})
+}
+
+function checkDbIndex(lookup, callback) {
+	Stock.find({ key: { $in: lookup } }, function(err, docs){
+		if (err) {
+			callback(err);
+		}
+		callback(null, docs);
+	})
+}
+
+
+function loadSnapshot(lookup, callback) {
 	yahooFinance.snapshot({ 
-		symbol: symbol,
+		symbol: lookup,
 		fields: ['s', 'n', 'd1', 'l1'] 
 	}, function (err, quote) {
 		if (err) {
 			return callback(err);
 		}
-		var snapshot = {
-			l1: quote.lastTradePriceOnly,
-			d1: quote.lastTradeDate 
+		var quotes = {
+			key: quote.symbol,
+			name: quote.name,
+			values: []
 		}
-		var lookup = [''+quote.symbol+'']
-		getStockInfo(lookup, function(err, result){
-			if (err) {
-				return callback(err);
-			}
-			
-			var entry = {
-				name: quote.name,
-				symbol: quote.symbol,
-				snapshot: snapshot,			
-				data: result
-			}
-			
-			Stock.findOne({symbol: quote.symbol}, function(err, stock){
-				if (!stock) {
-					Stock.insert(entry)
-					//console.log(result) //array
-					return res.render('index', entry);
-					
-				} else {
-					try {
-						Stock.updateOne(
-							{symbol: quote.symbol},
-							{$push: {data: result}},
-							{$set: {snapshot: snapshot}},
-							{upsert: true}
-						);
-					} catch (e) {
-						console.log(e);
-					}
-					return res.render('index', entry);
-				}
-			});
-		})
-		
+		callback(null, quotes);
 	});
-	
-});
-
-function loadSnapshot(lookup, callback) {
-		yahooFinance.snapshot({ 
-			symbol: lookup,
-			fields: ['s', 'n', 'd1', 'l1'] 
-		}, function (err, quote) {
-			if (err) {
-				return callback(err);
-			}
-			var quotes = {
-				key: quote.symbol,
-				values: []
-			}
-			callback(null, quotes);
-		});
 	
 }
 

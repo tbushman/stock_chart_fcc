@@ -1,10 +1,10 @@
 var mongoose = require('mongoose'),
     Schema = mongoose.Schema;
 
-var Stocks = new Schema({
+var Stock = new Schema({
 	name: String,
-	symbol: String,
-	data: [{
+	key: String,
+	values: [{
 		open: Number,
 		high: Number,
 		low: Number,
@@ -13,14 +13,8 @@ var Stocks = new Schema({
 		adjClose: Number,
 		symbol: String,
 		date: Date
-	}],
-	snapshot: {
-		symbol: String,
-		name: String,
-		lastTradeDate: Date,
-		lastTradePriceOnly: Number
-	}
+	}]
 }, { collection: 'fcc_stocks' });
 
 
-module.exports = mongoose.model('Stocks', Stocks);
+module.exports = mongoose.model('Stock', Stock);

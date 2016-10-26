@@ -14,7 +14,13 @@ a {
 #wrapper {
 	margin-top: 60px;
 }
-
+.nomargin {
+	margin: 0 0 0 0!important;
+	padding: 0 0 0 0!important;
+}
+form {
+	margin-top: 20px;
+}
 .btn, .panel {
 	margin-top: 10px;
 }
@@ -36,6 +42,11 @@ a {
 	font-size: 9px;
 	line-height: 0;
 }
+.overlay {
+  fill: none;
+  pointer-events: all;
+}
+
 .grid .tick {
 	stroke: lightgrey;
 	opacity: 0.7;
@@ -75,9 +86,24 @@ a {
 	stroke: transparent;
 	stroke-width: 10px;  
 	cursor: pointer;
+	opacity: 0;
 }
  
 .dot:hover {
 	stroke: rgba(68, 127, 255, 0.3);
 }
+.focus circle {
+  fill: none;
+}
+
+#chart {
+  position: relative;
+}
+
+.tt {
+    background-color: #fff;
+    padding: 8px;
+    display: none;
+    position: absolute;
+	width: 160px;
 }
