@@ -7,9 +7,18 @@ var dots = JSON.parse(incoming_dots);
 var margin = { top: 20, right: 80, bottom: 30, left: 50};
 var width = 960 - margin.left - margin.right;
 var height = 500 - margin.top - margin.bottom;
-var formatCurrency = function(d) { return "$" + formatValue(d); };
+var parseDate = d3.utcParse("%Y-%m-%dT%H:%M:%S.%LZ");
 function getDate(d) {
-	return new Date(d);
+	//d = +d;
+	
+	/*var parseDate = d.toString().split('"');
+	if (parseDate.length > 1) {
+		return new ISODate(parseDate[1]);
+	} else {*/
+		//d = new Date(d.replace('ISODate(', '').replace(')', '').replace('"', ''));
+	return moment(d);
+		//return new Date(d3.utc.parse("%Y-%m-%dT%H:%M:%S.%LZ").parse(d));		
+	//}
 }
 
 var x = d3.time.scale().range([0, width]);

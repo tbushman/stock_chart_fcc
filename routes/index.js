@@ -2,6 +2,8 @@ var express = require('express');
 var Stock = require('../models/stocks');
 var multer  = require('multer');
 //var waterfall = require('async-waterfall');
+//var timeFormat = require('d3-time-format');
+var moment = require('moment');
 var _ = require('underscore');
 var url = require('url');
 var dotenv = require('dotenv');
@@ -16,8 +18,10 @@ dotenv.load();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
+	//console.log(typeof ISODate("2016-10-06T06:00:00Z"))
 	var results = [];
 	var lookup;
+	var index = 0;
 	async.series([
 		function(callback) {
 			getAllDb({}, function(err, result){
@@ -29,18 +33,41 @@ router.get('/', function(req, res, next) {
 					for (var i in result) {
 						lookup.push(result[i].key)
 						results.push(result[i])
+						index++;
 					}
+					//var dateFormat = result[0].values[0].date;
+					//console.log(dateFormat)
 				}
 				callback();
 			})
 		},
 		function(callback) {
-			async.map(lookup, loadSnapshot, function(err, result){
-				for (var i in result) {
-					results.push(result[i])					
+			var new_lookup = [];
+			for (var i in lookup) {
+				function myIndexOf(this_symbol) {
+					for (var i = 0; i < results.length; i++) {
+						if (results[i].key === this_symbol) {
+							return results[i].key;
+						}
+					}  
+					return -1;
 				}
+				var stockFilter = myIndexOf(lookup[i]);
+				if (stockFilter === -1) {
+					new_lookup.push(lookup[i]);
+				}
+				
+			}
+			if (new_lookup.length > 0) {
+				async.map(new_lookup, loadSnapshot, function(err, result){
+					for (var i in result) {
+						results.push(result[i])					
+					}
+					callback();
+				})
+			} else {
 				callback();
-			})
+			}
 		},
 		function(callback) {
 			async.map(lookup, getStockInfo, function(err, result){
@@ -51,7 +78,8 @@ router.get('/', function(req, res, next) {
 					var arrays = _.find(result[prop[i]], function(item) {
 						return Array.isArray(item)
 					})
-					results[i].values = arrays;
+					results[index].values = arrays;
+					index++;
 				}
 				callback()
 			})
@@ -61,12 +89,22 @@ router.get('/', function(req, res, next) {
 			return next(err)
 		}
 		var dots = [];
+		Stock.update({}, results, {safe: true, upsert: true, multi: true}, function(error, docs){
+			if (error) {
+				return next(error)
+			}
+			for(var i in results) {
+				for (var j in results[i].values) {
+					//var date = 
+					//var format = timeFormat("%Y-%m-%dT%H:%M:%S.%LZ");
+					results[i].values[j].date = moment(results[i].values[j].date);
+					dots.push(results[i].values[j])
+				}				
+			}
+					
+		});
 		
-		for(var i in results) {
-			for (var j in results[i].values) {
-				dots.push(results[i].values[j])
-			}				
-		}
+		
 		return res.render('index', {
 			data: results,
 			dots: dots
@@ -103,6 +141,7 @@ router.delete('/delete/:symbol', function(req, res, next){
 		var dots = [];
 		for(var i in result) {
 			for (var j in result[i].values) {
+				results[i].values[j].date = moment(results[i].values[j].date);
 				dots.push(result[i].values[j])
 			}				
 		}
@@ -126,32 +165,32 @@ router.post('/add', upload.array(), function(req, res, next) {
 					callback(err)
 				}
 				if (docs.length === 0) {
-					callback(null, [], []);
+					callback(null, []/*, []*/);
 				} else {
-					callback(null, docs, []);
+					callback(null, docs/*, []*/);
 				}			
 			})	
 		},
-	  	function(docs, empty_array, callback){
+	  	function(docs/*, empty_array*/, callback){
 	    	//callback(null, 'three');
 			var results = docs;
-			var new_stocks = empty_array;
+			//var new_stocks = empty_array;
 			async.map(symbol, loadSnapshot, function(err, result){
 				for (var i in result) {
 					results.push(result[i])	
-					new_stocks.push(result[i])				
+					//new_stocks.push(result[i])				
 				}
-				callback(null, results, new_stocks);
+				callback(null, results/*, new_stocks*/);
 			})
 	  	},
-		function(results, new_stocks, callback){
+		function(results/*, new_stocks*/, callback){
 	    	// arg1 now equals 'three' 
 		    //callback(null, 'done');
 			
 			
 			async.map(symbol, getStockInfo, function(err, result){
 				var all_stocks = results;
-				var added_stocks = new_stocks;
+				//var added_stocks = new_stocks;
 				var prop = Object.getOwnPropertyNames(result)
 				//console.log(results)
 				var index = all_stocks.length - symbol.length;
@@ -161,48 +200,17 @@ router.post('/add', upload.array(), function(req, res, next) {
 						return Array.isArray(item)
 					})
 					all_stocks[index].values = arrays;
-					added_stocks[i].values = arrays;
+					//added_stocks[i].values = arrays;
 					index++;
 				}
-				callback(null, all_stocks, added_stocks);
+				callback(null, all_stocks/*, added_stocks*/);
 			})
 		},
-		function(all_stocks, added_stocks, callback) {
-			var results = all_stocks;
-			var new_stocks = added_stocks;
-			checkDbIndex(symbol, function(err, result){
-				if (result.length === 0) {
-					for (var i in new_stocks) {
-						Stock.insertOne(new_stocks[i], function(error, doc) {
-							if (error) {
-								return console.log(error)
-							}
-						});
-					}
-					callback(null, results);
-				} else {
-					for (var i in result) {
-						//var coords = {x: x, y: y};
-						function myIndexOf(stock) {
-							for (var i = 0; i < new_stocks.length; i++) {
-								if (new_stocks[i].key === stock.key) {
-									return new_stocks[i];
-								}
-							}  
-							return -1;
-						}
-						var stockFilter = myIndexOf(result[i]);
-						if (stockFilter !== -1) {
-							Stock.findOneAndUpdate({key: result[i].key}, stockFilter, {upsert: true}, function(err, docs){
-								if (err) {
-									return console.log(err);
-								}
-							})
-						}
-					}
-					callback(null, results);
-				}				
-			});
+		function(results, /*new_stocks,*/ callback) {
+			insertNew(results, function(err, result){
+				callback(null, result);
+			})
+								
 		}
 	], function (err, result) {
 	  // result now equals 'done' 
@@ -213,6 +221,7 @@ router.post('/add', upload.array(), function(req, res, next) {
 		
 		for(var i in result) {
 			for (var j in result[i].values) {
+				results[i].values[j].date = moment(results[i].values[j].date);
 				dots.push(result[i].values[j])
 			}				
 		}
@@ -233,12 +242,63 @@ function getAllDb(lookup, callback) {
 	})
 }
 
-function checkDbIndex(lookup, callback) {
-	Stock.find({ key: { $in: lookup } }, function(err, docs){
+function insertNew(all_stocks, callback) {
+	
+	var symbols = all_stocks.map(function(obj){ 	   
+	   return obj.key;
+	});
+	Stock.find({key: {$in : symbols }}, function(err, stock) {
 		if (err) {
-			callback(err);
+			console.log(err)
 		}
-		callback(null, docs);
+		while (all_stocks.length > 0) {
+			function myIndexOf(this_stock) {
+				for (var i = 0; i < stock.length; i++) {
+					if (stock[i].key === this_stock.key) {
+						return stock[i];
+					}
+				}  
+				return -1;
+			}
+			var stockFilter = myIndexOf(all_stocks[0]);
+			/*var updateData = {
+				name: all_stocks[0].name,
+				key: all_stocks[0].key,
+				values: [{
+					open: Number,
+					high: Number,
+					low: Number,
+					close: Number,
+					volume: Number,
+					adjClose: Number,
+					symbol: String,
+					date: Date
+				}]
+			}*/
+			if (stockFilter !== -1) {
+				
+				Stock.findOneAndUpdate({key: all_stocks[0].key}, stockFilter, {upsert: false}, function(err, docs){
+					if (err) {
+						return console.log(err);
+					}
+				})
+				
+			} else {
+				stock = new Stock(all_stocks[0]);
+				stock.save(function(err){
+					if (err) {
+						console.log(err)
+					}
+				})
+			}
+			all_stocks.shift();
+		}
+		Stock.find(function(err, docs){
+			if (err) {
+				callback(err);
+			}
+			callback(null, docs)
+		});
 	})
 }
 
@@ -257,11 +317,8 @@ function loadSnapshot(lookup, callback) {
 			values: []
 		}
 		callback(null, quotes);
-	});
-	
+	});	
 }
-
-
 
 function getStockInfo(lookup, callback) {
 	
@@ -270,7 +327,7 @@ function getStockInfo(lookup, callback) {
 	var month = to.getMonth();
 	var day = to.getDate();
 	//console.log(to)
-	var makeDate = new Date(year-1, month, day); 
+	var makeDate = new Date(year, month-1, day); 
 	var histDate = new Date();
 	histDate.setTime(makeDate.getTime());
 
