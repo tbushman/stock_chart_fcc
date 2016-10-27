@@ -4,7 +4,7 @@ var mongoose = require('mongoose'),
 var Stock = new Schema({
 	name: String,
 	key: String,
-	values: [{
+	stock_array: [{
 		open: Number,
 		high: Number,
 		low: Number,

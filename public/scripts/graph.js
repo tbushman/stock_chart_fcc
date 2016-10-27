@@ -16,7 +16,7 @@ function getDate(d) {
 		return new ISODate(parseDate[1]);
 	} else {*/
 		//d = new Date(d.replace('ISODate(', '').replace(')', '').replace('"', ''));
-	return moment(d);
+	return new Date(d);
 		//return new Date(d3.utc.parse("%Y-%m-%dT%H:%M:%S.%LZ").parse(d));		
 	//}
 }
@@ -31,7 +31,7 @@ var xAxis = d3.svg.axis().scale(x).orient("bottom");
 
 var yAxis = d3.svg.axis().scale(y).orient("left");
 
-var line = d3.svg.line().interpolate("basis").x(function (d) {
+var line = d3.svg.line().interpolate("line").x(function (d) {
     return x(getDate(d.date));
 }).y(function (d) {
     return y(d.close);
@@ -45,12 +45,12 @@ var svg = d3.select("#chart")
 color.domain(data.map(function (d) { return d.key; }));
 
 x.domain([
-    d3.min(data, function(c) { return d3.min(c.values, function(v) { return getDate(v.date); }); }),
-    d3.max(data, function(c) { return d3.max(c.values, function(v) { return getDate(v.date); }); })
+    d3.min(data, function(c) { return d3.min(c.stock_array, function(v) { return getDate(v.date); }); }),
+    d3.max(data, function(c) { return d3.max(c.stock_array, function(v) { return getDate(v.date); }); })
 ]);
 y.domain([
-    d3.min(data, function(c) { return d3.min(c.values, function(v) { return v.close; }); }),
-    d3.max(data, function(c) { return d3.max(c.values, function(v) { return v.close; }); })
+    d3.min(data, function(c) { return d3.min(c.stock_array, function(v) { return v.close; }); }),
+    d3.max(data, function(c) { return d3.max(c.stock_array, function(v) { return v.close; }); })
 ]);
 
 svg.append("g").attr("class", "x axis")
@@ -73,7 +73,7 @@ var path = svg.selectAll(".stock")
 .append("path")
 .attr("class", "line")
 .attr("d", function (d) {
-    return line(d.values);
+    return line(d.stock_array);
 }).style("stroke", function (d) {
     return color(d.key);
 });
@@ -90,8 +90,8 @@ for (var i = 0; i < thispath.length; i++) {
 stock.append("text").datum(function (d) {
 	return {
 		name: d.key,
-		date: getDate(d.values[d.values.length - 1].date),
-		value: d.values[d.values.length - 1].close
+		date: getDate(d.stock_array[d.stock_array.length - 1].date),
+		value: d.stock_array[d.stock_array.length - 1].close
     };
 }).attr("transform", function (d) {
 	return "translate(" + x(getDate(d.date)) + "," + y(d.value) + ")";

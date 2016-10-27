@@ -21,6 +21,9 @@ a {
 form {
 	margin-top: 20px;
 }
+.day {
+	cursor: pointer;
+}
 .btn, .panel {
 	margin-top: 10px;
 }
