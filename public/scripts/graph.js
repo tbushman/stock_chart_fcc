@@ -1,11 +1,11 @@
-function graphIt(){
+function graphIt(myWidth, myHeight){
 	var incoming = $('.data-json').val();
 	var data = JSON.parse(incoming);
 	var incoming_dots = $('.data-json-dots').val();
 	var dots = JSON.parse(incoming_dots);
-	var margin = { top: 20, right: 80, bottom: 30, left: 50};
-	var width = 800 - margin.left - margin.right;
-	var height = 400 - margin.top - margin.bottom;
+	var margin = { top: 20, right: 100, bottom: 30, left: 40};
+	var width = myWidth - margin.left - margin.right;
+	var height = myHeight - margin.top - margin.bottom;
 	var parseDate = d3.utcParse("%Y-%m-%dT%H:%M:%S.%LZ");
 	function getDate(d) {
 		return new Date(d);
@@ -118,17 +118,6 @@ function graphIt(){
 		d3.select(this).style("opacity", 0);
 		$(".tt").hide();
 	});
-	$(document).on('click', '.remove', function(){
-		var thiskey = $(this).attr('id');
-		$.ajax({
-			url: '/delete/' + thiskey,
-			type: 'DELETE',
-			success: function(data) {
-				$('#stock_tab_'+thiskey+'').remove();
-				location.reload(true)
-			}
-		});
-	});
 	$('#start_date > input').val(d3.min(data, function(c) { return d3.min(c.stock_array, function(v) { return v.date; }); }));      
 	$('#end_date > input').val(d3.max(data, function(c) { return d3.max(c.stock_array, function(v) { return v.date; }); }));
 	$('#start_date').datepicker({
@@ -155,7 +144,70 @@ function graphIt(){
 	
 }
 
-$(document).ready(graphIt)
+$(document).ready(function() {
+  	var myWidth = 0, myHeight = 0;
+	if( typeof( window.innerWidth ) == 'number' ) {
+	    //Non-IE
+		myWidth = window.innerWidth - 50;
+		myHeight = window.innerHeight - 260;
+	} else if( document.documentElement && ( document.documentElement.clientWidth || document.documentElement.clientHeight ) ) {
+		//IE 6+ in 'standards compliant mode'
+		myWidth = document.documentElement.clientWidth - 50;
+		myHeight = document.documentElement.clientHeight - 260;
+	} else if( document.body && ( document.body.clientWidth || document.body.clientHeight ) ) {
+		//IE 4 compatible
+		myWidth = document.body.clientWidth - 50;
+		myHeight = document.body.clientHeight - 260;
+	} else {
+		myWidth = 800;
+		myHeight = 400;
+	}
+	$('.chart-width').val(myWidth);
+	$('.chart-height').val(myHeight);
+	graphIt(myWidth, myHeight);
+	
+	
+})
+$(document).on('click', '.remove', function(){
+	var thiskey = $(this).attr('id');
+	$.ajax({
+		url: '/delete/' + thiskey,
+		type: 'DELETE',
+		success: function(result) {
+			var width = $('.chart-width').val();
+			var height = $('.chart-height').val();
+			$('.data-json').val(result.data);
+			$('.data-json-dots').val(result.dots);
+			$('#stock_tab_'+thiskey+'').remove();
+			graphIt(width, height)
+		}
+	});
+});
+
+$(document).on('click', '.add', function(){
+	var start_date = $('#start_date > input').val()
+	var end_date = $('#start_date > input').val()
+	var symbol = $('#symbol').val();
+	var symbols = symbol.split(',');
+	var data = {
+		start_date: start_date,
+		end_date: end_date,
+		symbols: symbols
+	}
+	$.ajax({
+		url: '/add',
+		type: 'POST',
+		data: JSON.stringify(data),
+		contentType: 'application/json',
+		success: function(result) {
+			var width = $('.chart-width').val();
+			var height = $('.chart-height').val();
+			$('.data-json').val(result.data);
+			$('.data-json-dots').val(result.dots);
+			graphIt(width, height)
+		}
+	});
+});
 
 //credit: http://bl.ocks.org/atmccann/8966400, http://bl.ocks.org/mbostock/3884955, http://stackoverflow.com/a/20017009/3530394
 //http://codepen.io/pdillon/pen/bEgmA, http://codepen.io/jayarjo/pen/gzfyj?editors=0010

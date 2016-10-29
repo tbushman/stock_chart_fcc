@@ -183,7 +183,7 @@ router.delete('/delete/:symbol', function(req, res, next){
 			next(err);
 		}
 		
-		return res.render('index', { 
+		return res.json({ 
 			data: result,
 			dots: dots
 		});
@@ -191,7 +191,7 @@ router.delete('/delete/:symbol', function(req, res, next){
 	//res.redirect('/')
 });
 
-router.post('/add', upload.array(), function(req, res, next) {
+router.post('/add', function(req, res, next) {
 	var re = /\s*,\s*/;	
 	var symbol = req.body.symbol.split(re);	
 	
@@ -276,52 +276,32 @@ router.post('/add', upload.array(), function(req, res, next) {
 				}
 				Stock.find().lean().exec(function(err, result){
 					if (err) {
-						return next(err);
+						next(err);
 					}
-					var dots = [];
-					for(var i in result) {
-						for (var j in result[i].stock_array) {
-							result[i].stock_array[j].date = moment(result[i].stock_array[j].date);
-							dots.push(result[i].stock_array[j])
-						}				
-					}
-					
-					next(null, result, dots)
+					next(null, result)
 				});
 			})								
 		}
-	], function (err, result, dots, next) {
+	], function (err, result) {
 	  // result now equals 'done' 
 		if (err) {
 			next(err)
 		}
-		return res.render('index', {
+		var dots = [];
+		for(var i in result) {
+			for (var j in result[i].stock_array) {
+				result[i].stock_array[j].date = moment(result[i].stock_array[j].date);
+				dots.push(result[i].stock_array[j])
+			}				
+		}
+		return res.json({
 			data: result,
 			dots: dots
-		});
+		})
 	});
 	
 });
 
-function filteredLookup(lookup, results, next) {
-	var new_lookup = [];
-	for (var i in lookup) {
-		function myIndexOf(this_symbol) {
-			for (var i = 0; i < results.length; i++) {
-				if (results[i].key === this_symbol) {
-					return results[i].key;
-				}
-			}  
-			return -1;
-		}
-		var stockFilter = myIndexOf(lookup[i]);
-		if (stockFilter === -1) {
-			new_lookup.push(lookup[i]);
-		}
-		
-	}	
-	next(null, new_lookup);
-}
 
 function getAllDb(lookup, next) {
 	Stock.find(lookup).lean().exec(function(err, docs) {
@@ -380,34 +360,6 @@ function loadSnapshot(lookup, next) {
 		next(null, quotes);
 	});	
 }
-
-function getStockInfo(query, next) {
-	var end_date = new Date();//.toISOString();
-	var year = end_date.getFullYear();
-	var month = end_date.getMonth();
-	var day = end_date.getDate();
-	//console.log(to)
-	var makeDate = new Date(year-1, month, day); 
-	var start_date = new Date();
-	//new Date(start);//.toISOString();//new Date();
-	start_date.setTime(makeDate.getTime());
-	/*var symbols = [];
-	for (var i in query) {
-		symbols.push(query[i].symbol)
-	}*/
-	//console.log(query)
-	yahooFinance.historical({
-		symbols: [query],
-		from: start_date,
-		to: end_date
-	}, function(error, results){
-		if (error) {
-			return next(error)
-		}
-		next(null, results)
-	});
-}
-
 
 
 module.exports = router;

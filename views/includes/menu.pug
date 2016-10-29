@@ -10,20 +10,28 @@ navbar.navbar-default.navbar-fixed-top
 				h6.subtitle #{appTitle}
 		div.collapse.navbar-collapse#navbar-collapse-1
 			
-						
-			if (user)		
-				ul.nav.navbar-nav.navbar-left
-					li(class=(menu === 'index')?'active':'')
-						a(href='/') 
-							h4 Home
-					li(class=(menu === 'search')?'active':'')
-						a(href="/search") 
-							h4 Search
-			else
-				ul.nav.navbar-nav.navbar-left
-					li(class=(menu === 'index')?'active':'')
-						a(href='/') 
-							h4 Home
-					li(class=(menu === 'search')?'active':'')
-						a(href="/search") 
-							h4 Search
+			form.navbar-form.navbar-left(method="POST", role="form")
+				div.row
+					div.col-xs-6.col-sm-4.from
+						h6 Date from:
+						div.form-group
+							div.input-group.date#start_date
+								input.form-control(type="text", name="start_date", data-provide="datepicker")
+								span.input-group-addon
+									span.glyphicon.glyphicon-calendar
+					div.col-xs-6.col-sm-4.to
+						h6 Date to:
+						div.form-group
+							div.input-group.date#end_date
+								input.form-control(type="text", name="end_date", data-provide="datepicker")
+								span.input-group-addon
+									span.glyphicon.glyphicon-calendar
+
+
+					div.col-xs-12.col-sm-4
+						h6 Add a stock:
+						div.input-group.col-xs-12
+							input.form-control(name="symbol", type="text", id="symbol")
+							div.input-group-addon
+								button.btn.btn-sm.nomargin.add Add
+									

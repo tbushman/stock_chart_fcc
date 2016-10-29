@@ -1,43 +1,16 @@
 extends layout
 block page
-	- var menu = 'index'
 block content
 	- var dataString = JSON.stringify(data)
 	- var dotString = JSON.stringify(dots)
 	input(type='hidden', class='data-json-dots', value= dotString)
 	input(type='hidden', class='data-json', value= dataString)
+	input(type='hidden', class='chart-width')
+	input(type='hidden', class='chart-height')
 	
 	div.row
 		div#chart.col-xs-12(class='vis')
 			div.tt
-				
-	div.row
-		form(action="/add", method="POST", role="form")
-			div.col-xs-12.col-sm-6.col-md-8.the_inputs
-				
-				div.col-xs-6.from
-					h6 Date from:
-					div.form-group
-						div.input-group.date#start_date
-							input.form-control(type="text", name="start_date", data-provide="datepicker")
-							span.input-group-addon
-								span.glyphicon.glyphicon-calendar
-				div.col-xs-6.to
-					h6 Date to:
-					div.form-group
-						div.input-group.date#end_date
-							input.form-control(type="text", name="end_date", data-provide="datepicker")
-							span.input-group-addon
-								span.glyphicon.glyphicon-calendar
-		
-					
-			div.col-xs-12.col-sm-6.col-md-4
-				h6 Add a stock:
-				div.input-group.col-xs-12
-					input.form-control(name="symbol", type="text")
-					div.input-group-addon
-						button.btn.btn-sm.nomargin(type="submit") Add
-	
 	div.row
 		each val, index in data
 			div.col-xs-12.col-sm-6.col-md-4
