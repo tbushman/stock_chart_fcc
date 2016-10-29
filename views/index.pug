@@ -4,48 +4,47 @@ block page
 block content
 	- var dataString = JSON.stringify(data)
 	- var dotString = JSON.stringify(dots)
-	- var start = $('#start_date').val();
-	- var end = $('end_date').val();
 	input(type='hidden', class='data-json-dots', value= dotString)
 	input(type='hidden', class='data-json', value= dataString)
-	if (data.length === 0)
+	
+	div.row
+		div#chart.col-xs-12(class='vis')
+			div.tt
+				
+	div.row
 		form(action="/add", method="POST", role="form")
-			div.form-group
-				label(for="symbol") Add a stock:
-				input.form-control(name="symbol", type="text")
-			button.btn.btn-primary(type="submit") Add
-	else
-		div.row
-			div#chart.col-xs-12(class='vis')
-				div.tt
-					
-		div.row
-			form(action="/add", method="POST", role="form")
-				div.col-xs-6
-					h6 Choose a date range:
-					#datepicker.col-xs-12(class="input-daterange input-group")
-						div.input-group.datepicker
-							input.form-control(type="text", name="start_date", id="start_date", data-provide="datepicker", data-date-disable-touch-keyboard="true", data-date-before-show-month="false")
-							span.date-text.date-from
-							span.input-group-addon to
-							input.form-control(type="text", name="end_date", id="end_date", data-provide="datepicker", data-date-disable-touch-keyboard="true", data-date-today-btn="linked", data-date-immediate-updates="true")
-							span.date-text.date-to
-						
-				div.col-xs-6
-					h6 Add a stock:
-					div.input-group.col-xs-12
-						input.form-control(name="symbol", type="text")
-						div.input-group-addon
-							button.btn.btn-sm.nomargin(type="submit") Add
+			div.col-xs-6
+				h6 Choose a date range:
+				div.col-xs-5
+					div.form-group
+						div.input-group.date#start_date
+							input#start_date.form-control(type="text", name="start_date", data-provide="datepicker")
+							span.input-group-addon
+								span.glyphicon.glyphicon-calendar
+				h6.col-xs-2 to
+				div.col-xs-5
+					div.form-group
+						div.input-group.date#end_date
+							input#end_date.form-control(type="text", name="end_date", data-provide="datepicker")
+							span.input-group-addon
+								span.glyphicon.glyphicon-calendar
 		
-		div.row
-			each val, index in data
-				div.col-xs-12.col-sm-6.col-md-4
-					div.panel.panel-sm.panel-default(id="stock_tab_"+val.key+"")
-						div.panel-body.row
-							h6.col-xs-9.col-md-8 #{val.name}
-							div.col-xs-3.col-md-4
-								button.btn.btn-block(id=""+val.key+"", role="button", type="submit", class="remove") x
+					
+			div.col-xs-6
+				h6 Add a stock:
+				div.input-group.col-xs-12
+					input.form-control(name="symbol", type="text")
+					div.input-group-addon
+						button.btn.btn-sm.nomargin(type="submit") Add
+	
+	div.row
+		each val, index in data
+			div.col-xs-12.col-sm-6.col-md-4
+				div.panel.panel-sm.panel-default(id="stock_tab_"+val.key+"")
+					div.panel-body.row
+						h6.col-xs-9.col-md-8 #{val.name}
+						div.col-xs-3.col-md-4
+							button.btn.btn-block(id=""+val.key+"", role="button", type="submit", class="remove") x
 		
 	script(type="text/javascript").
 		$(document).on('click', '.remove', function(){
@@ -58,28 +57,28 @@ block content
 				}
 			});
 		});
-		$(document).ready(function () {
-			var datepicker = $.fn.datepicker.noConflict();
-			$.fn.bootstrapDP = datepicker;
-			$('#datepicker').datepicker({
-				daysOfWeekDisabled: [0,6],
-			    format: {
-						toDisplay: function (date, format, language) {
-				            var d = new Date(date);
-				            return d;
-				        },
-				        toValue: function (date, format, language) {
-				            var d = new Date(date);
-				            return d;
-				        }
-
-			    },
-			    autoclose: true
-			});
-			$('#start_date').datepicker('clearDates');      
-			$('#end_date').datepicker('clearDates');
-			
-			
-		});
+		$('#start_date').val();      
+		$('#end_date').val();
+		$('#start_date').datepicker({
+			daysOfWeekDisabled: [0,6],
+			beforeShowMonth: false,
+			endDate: "0d",
+			format: function(date) {
+				return new Date(date)
+			},
+			keyboardNavigation: false,
+		    autoclose: true
+		})
+		$('#end_date').datepicker({
+			daysOfWeekDisabled: [0,6],
+			useCurrent: false,
+			endDate: "0d",
+			todayBtn: "linked",
+			format: function(date) {
+				return new Date(date)
+			},
+			keyboardNavigation: false,
+		    autoclose: true
+		})
 		
 		
