@@ -1,7 +1,9 @@
-function graphIt(myWidth, myHeight, data, dots){
+function graphIt(){
 	var margin = { top: 20, right: 100, bottom: 30, left: 40};
-	var width = myWidth - margin.left - margin.right;
-	var height = myHeight - margin.top - margin.bottom;
+	var w = $('.chart-width').val();
+	var h = $('.chart-height').val();
+	var width = w - margin.left - margin.right;
+	var height = h - margin.top - margin.bottom;
 	var parseDate = d3.utcParse("%Y-%m-%dT%H:%M:%S.%LZ");
 	function getDate(d) {
 		return new Date(d);
@@ -17,19 +19,18 @@ function graphIt(myWidth, myHeight, data, dots){
 
 	var yAxis = d3.svg.axis().scale(y).orient("left");
 
+	var svg = d3.select("#chart")
+	.append("svg").attr("width", width + margin.left + margin.right)
+	.attr("height", height + margin.top + margin.bottom).append("g")
+	.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+	var data = JSON.parse(d3.select('#chart').attr('data-json'));
+	var dots = JSON.parse(d3.select('#chart').attr('data-json-dots'));
 	var line = d3.svg.line().interpolate("line").x(function (d) {
 	    return x(getDate(d.date));
 	}).y(function (d) {
 	    return y(d.close);
 	});
-
-	var svg = d3.select("#chart")
-	.append("svg").attr("width", width + margin.left + margin.right)
-	.attr("height", height + margin.top + margin.bottom).append("g")
-	.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
 	color.domain(data.map(function (d) { return d.key; }));
-
 	x.domain([
 	    d3.min(data, function(c) { return d3.min(c.stock_array, function(v) { return getDate(v.date); }); }),
 	    d3.max(data, function(c) { return d3.max(c.stock_array, function(v) { return getDate(v.date); }); })
@@ -137,10 +138,7 @@ function graphIt(myWidth, myHeight, data, dots){
 	})
 }
 document.addEventListener('DOMContentLoaded', function() {
-	var incoming = $('.data-json').val();
-	var incoming_dots = $('.data-json-dots').val();
-	var data = JSON.parse(incoming);
-	var dots = JSON.parse(incoming_dots);
+	
   	var myWidth = 0, myHeight = 0;
 	if( typeof( window.innerWidth ) == 'number' ) {
 	    //Non-IE
@@ -160,11 +158,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 	$('.chart-width').val(myWidth);
 	$('.chart-height').val(myHeight);
-	setTimeout(function(){
-		graphIt(myWidth, myHeight, data, dots);
-	}, 2000)
-	
-	
+	graphIt();
 });
 //$(document).ready()
 $(document).on('click', '.remove', function(){

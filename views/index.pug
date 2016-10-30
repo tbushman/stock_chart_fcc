@@ -1,17 +1,13 @@
 extends layout
 block page
 block content
-	- var dataString = JSON.stringify(data)
-	- var dotString = JSON.stringify(dots)
-	input(type='hidden', class='data-json-dots', value= dotString)
-	input(type='hidden', class='data-json', value= dataString)
+	
 	input(type='hidden', class='chart-width')
 	input(type='hidden', class='chart-height')
-	input(type='hidden', class='start_date', value=''+start_date+'')
-	input(type='hidden', class='end_date', value=''+end_date+'')
+	
 	
 	div.row
-		div#chart.col-xs-12(class='vis')
+		div#chart.col-xs-12(class='vis', data-json=''+JSON.stringify(data)+'', data-json-dots=''+JSON.stringify(dots)+'')
 			div.tt.panel.panel-sm
 	div.row
 		each val, index in data
