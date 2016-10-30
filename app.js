@@ -33,7 +33,7 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-var uri = process.env.DEVDB;//process.env.MONGOLAB_URI;// || process.env.DEVDB;
+var uri = process.env.MONGOLAB_URI;// || process.env.DEVDB;
 
 mongoose.connect(uri/*, {authMechanism: 'ScramSHA1'}*/);
 var db = mongoose.connection;
@@ -58,14 +58,15 @@ app.use(session(sess))
 
 app.use(express.static(__dirname + '/public'));
 
+
+app.use('/', routes);
+
 app.use(function (req, res, next){
 	res.locals.data = req.session.data;
 	res.locals.dots = req.session.dots;	
 	res.locals.start_date = req.session.start_date;
 	res.locals.end_date = req.session.end_date;
 });
-
-app.use('/', routes);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
