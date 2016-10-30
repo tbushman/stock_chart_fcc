@@ -1,8 +1,4 @@
-function graphIt(myWidth, myHeight){
-	var incoming = $('.data-json').val();
-	var incoming_dots = $('.data-json-dots').val();
-	var data = JSON.parse(incoming);
-	var dots = JSON.parse(incoming_dots);
+function graphIt(myWidth, myHeight, data, dots){
 	var margin = { top: 20, right: 100, bottom: 30, left: 40};
 	var width = myWidth - margin.left - margin.right;
 	var height = myHeight - margin.top - margin.bottom;
@@ -141,6 +137,10 @@ function graphIt(myWidth, myHeight){
 	})
 }
 document.addEventListener('DOMContentLoaded', function() {
+	var incoming = $('.data-json').val();
+	var incoming_dots = $('.data-json-dots').val();
+	var data = JSON.parse(incoming);
+	var dots = JSON.parse(incoming_dots);
   	var myWidth = 0, myHeight = 0;
 	if( typeof( window.innerWidth ) == 'number' ) {
 	    //Non-IE
@@ -160,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 	$('.chart-width').val(myWidth);
 	$('.chart-height').val(myHeight);
-	graphIt(myWidth, myHeight);
+	graphIt(myWidth, myHeight, data, dots);
 	
 	
 });
