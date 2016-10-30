@@ -1,7 +1,7 @@
 function graphIt(myWidth, myHeight){
 	var incoming = $('.data-json').val();
-	var data = JSON.parse(incoming);
 	var incoming_dots = $('.data-json-dots').val();
+	var data = JSON.parse(incoming);
 	var dots = JSON.parse(incoming_dots);
 	var margin = { top: 20, right: 100, bottom: 30, left: 40};
 	var width = myWidth - margin.left - margin.right;
@@ -86,7 +86,7 @@ function graphIt(myWidth, myHeight){
 	}).attr("transform", function (d) {
 		return "translate(" + x(getDate(d.date)) + "," + y(d.value) + ")";
 	}).attr("x", 3).attr("dy", ".35em").text(function (d) {
-		return d.name;
+		return d.name.toUpperCase();
 	});
 
 	var dot = svg.selectAll(".dot")
@@ -104,7 +104,7 @@ function graphIt(myWidth, myHeight){
 		var getThisDate = getDate(d.date);
 		var displayDate = ''+getThisDate.getMonth()+'/'+getThisDate.getDate()+'/'+getThisDate.getFullYear()+'';
 		var displayVal = '$'+d.close.toFixed(2);
-		$('.tt').html("<div class='row'><div class='name col-xs-6' id='"+d.symbol+"'>"+d.symbol+"</div><div class='col-xs-6'>Volume:</div><div class='date col-xs-6'>"+displayDate+"</div><div class='col-xs-6'>"+d.volume+"</div><div class='close col-xs-12'>"+displayVal+"</div></div><div class='row'><div class='col-xs-6'>Open: $"+d.open.toFixed(2)+"</div><div class='col-xs-6'>High: $"+d.high.toFixed(2)+"</div></div>");
+		$('.tt').html("<div class='row'><div class='name col-xs-6' id='"+d.symbol+"'>"+d.symbol.toUpperCase()+"</div><div class='col-xs-6'>Volume:</div><div class='date col-xs-6'>"+displayDate+"</div><div class='col-xs-6'>"+d.volume+"</div><div class='col-xs-12'><h4 class='quote'><strong>"+displayVal+"</strong></h4></div></div><div class='row'><div class='col-xs-6'>Open: $"+d.open.toFixed(2)+"</div><div class='col-xs-6'>High: $"+d.high.toFixed(2)+"</div></div>");
 		$('.tt').show();
 		d3.select(this).style("opacity", 1);
 	}).on("mousemove", function(d){
@@ -118,12 +118,11 @@ function graphIt(myWidth, myHeight){
 		d3.select(this).style("opacity", 0);
 		$(".tt").hide();
 	});
-	$('#start_date > input').val(d3.min(data, function(c) { return d3.min(c.stock_array, function(v) { return v.date; }); }));      
-	$('#end_date > input').val(d3.max(data, function(c) { return d3.max(c.stock_array, function(v) { return v.date; }); }));
+	var datepicker = $.fn.datepicker.noConflict(); // return $.fn.datepicker to previously assigned value
+	$.fn.bootstrapDP = datepicker;
+	$('#start_date > input').val(moment().subtract(1, 'year').format('MM/DD/YYYY'));  
+	$('#end_date > input').val(moment().format('MM/DD/YYYY'));
 	$('#start_date').datepicker({
-		daysOfWeekDisabled: [0,6],
-		beforeShowMonth: false,
-		endDate: "0d",
 		format: function(date) {
 			return new Date(date)
 		},
@@ -131,7 +130,6 @@ function graphIt(myWidth, myHeight){
 	    autoclose: true
 	})
 	$('#end_date').datepicker({
-		daysOfWeekDisabled: [0,6],
 		useCurrent: false,
 		endDate: "0d",
 		todayBtn: "linked",
@@ -141,7 +139,6 @@ function graphIt(myWidth, myHeight){
 		keyboardNavigation: false,
 	    autoclose: true
 	})
-	
 }
 
 $(document).ready(function() {
@@ -164,6 +161,12 @@ $(document).ready(function() {
 	}
 	$('.chart-width').val(myWidth);
 	$('.chart-height').val(myHeight);
+	
+	/*var start_date = $('.start_date').val();      
+	var end_date = $('.end_date').val();
+	  */
+	//var incoming = $('.data-json').val();
+	//var incoming_dots = $('.data-json-dots').val();
 	graphIt(myWidth, myHeight);
 	
 	
@@ -173,41 +176,21 @@ $(document).on('click', '.remove', function(){
 	$.ajax({
 		url: '/delete/' + thiskey,
 		type: 'DELETE',
-		success: function(result) {
-			var width = $('.chart-width').val();
-			var height = $('.chart-height').val();
-			$('.data-json').val(result.data);
-			$('.data-json-dots').val(result.dots);
+		success: function() {
+			//var width = $('.chart-width').val();
+			//var height = $('.chart-height').val();
+			//var incoming = result.data;
+			//var incoming_dots = result.dots;
+			//$('.data-json').val(result.data);
+			//$('.data-json-dots').val(result.dots);
+			//location.reload(true)
+			//$(window).load(graphIt(width, height, incoming, incoming_dots))
 			$('#stock_tab_'+thiskey+'').remove();
-			graphIt(width, height)
+			location.reload(true)
 		}
 	});
 });
 
-$(document).on('click', '.add', function(){
-	var start_date = $('#start_date > input').val()
-	var end_date = $('#start_date > input').val()
-	var symbol = $('#symbol').val();
-	var symbols = symbol.split(',');
-	var data = {
-		start_date: start_date,
-		end_date: end_date,
-		symbols: symbols
-	}
-	$.ajax({
-		url: '/add',
-		type: 'POST',
-		data: JSON.stringify(data),
-		contentType: 'application/json',
-		success: function(result) {
-			var width = $('.chart-width').val();
-			var height = $('.chart-height').val();
-			$('.data-json').val(result.data);
-			$('.data-json-dots').val(result.dots);
-			graphIt(width, height)
-		}
-	});
-});
 
 //credit: http://bl.ocks.org/atmccann/8966400, http://bl.ocks.org/mbostock/3884955, http://stackoverflow.com/a/20017009/3530394
 //http://codepen.io/pdillon/pen/bEgmA, http://codepen.io/jayarjo/pen/gzfyj?editors=0010

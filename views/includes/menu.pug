@@ -6,32 +6,33 @@ navbar.navbar-default.navbar-fixed-top
 				span.icon-bar
 				span.icon-bar
 				span.icon-bar
-			a.navbar-brand(href="#") ??.bli.sh
+			a.navbar-brand(href="#") Stock Finder
 				h6.subtitle #{appTitle}
 		div.collapse.navbar-collapse#navbar-collapse-1
 			
-			form.navbar-form.navbar-left(method="POST", role="form")
+			form.navbar-form.navbar-left(action="/add", method="POST", role="form")
 				div.row
 					div.col-xs-6.col-sm-4.from
 						h6 Date from:
 						div.form-group
 							div.input-group.date#start_date
-								input.form-control(type="text", name="start_date", data-provide="datepicker")
+								input.form-control(type="text", name="start_date", data-provide="datepicker", data-date-days-of-week-disabled="[0,6]")
 								span.input-group-addon
-									span.glyphicon.glyphicon-calendar
+									span.i.fa.fa-calendar(aria-hidden="true")
+									
 					div.col-xs-6.col-sm-4.to
 						h6 Date to:
 						div.form-group
 							div.input-group.date#end_date
-								input.form-control(type="text", name="end_date", data-provide="datepicker")
+								input.form-control(type="text", name="end_date", data-provide="datepicker", data-date-days-of-week-disabled="[0,6]")
 								span.input-group-addon
-									span.glyphicon.glyphicon-calendar
+									span.i.fa.fa-calendar(aria-hidden="true")
 
 
 					div.col-xs-12.col-sm-4
 						h6 Add a stock:
 						div.input-group.col-xs-12
-							input.form-control(name="symbol", type="text", id="symbol")
+							input.form-control(name="symbol", type="text")
 							div.input-group-addon
-								button.btn.btn-sm.nomargin.add Add
+								button.btn.btn-sm.nomargin(type="submit") Add
 									

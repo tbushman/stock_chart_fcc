@@ -7,15 +7,18 @@ block content
 	input(type='hidden', class='data-json', value= dataString)
 	input(type='hidden', class='chart-width')
 	input(type='hidden', class='chart-height')
+	input(type='hidden', class='start_date', value=''+start_date+'')
+	input(type='hidden', class='end_date', value=''+end_date+'')
 	
 	div.row
 		div#chart.col-xs-12(class='vis')
-			div.tt
+			div.tt.panel.panel-sm
 	div.row
 		each val, index in data
 			div.col-xs-12.col-sm-6.col-md-4
-				div.panel.panel-sm.panel-default(id="stock_tab_"+val.key+"")
+				div.panel.panel-default(id="stock_tab_"+val.key+"")
 					div.panel-body.row
-						h6.col-xs-9.col-md-8 #{val.name}
-						div.col-xs-3.col-md-4
-							button.btn.btn-block(id=""+val.key+"", role="button", type="submit", class="remove") x
+						h5.col-xs-10.col-sm-9.col-lg-10 #{val.name}
+						div.col-xs-2.col-sm-3.col-lg-2
+							button.btn.pull-right(id=""+val.key+"", role="button", type="submit", class="remove") 
+								i.fa.fa-times(aria-hidden="true")
