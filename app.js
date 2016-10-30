@@ -37,7 +37,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 var uri = process.env.MONGOLAB_URI || process.env.DEVDB;
 
-mongoose.connect(uri, {authMechanism: 'ScramSHA1'});
+mongoose.connect(uri);
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
 
