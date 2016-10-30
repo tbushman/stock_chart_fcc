@@ -140,8 +140,7 @@ function graphIt(myWidth, myHeight){
 	    autoclose: true
 	})
 }
-
-$(document).ready(function() {
+document.addEventListener('DOMContentLoaded', function() {
   	var myWidth = 0, myHeight = 0;
 	if( typeof( window.innerWidth ) == 'number' ) {
 	    //Non-IE
@@ -164,7 +163,8 @@ $(document).ready(function() {
 	graphIt(myWidth, myHeight);
 	
 	
-})
+});
+//$(document).ready()
 $(document).on('click', '.remove', function(){
 	var thiskey = $(this).attr('id');
 	$.ajax({
