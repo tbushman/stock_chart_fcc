@@ -160,7 +160,9 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 	$('.chart-width').val(myWidth);
 	$('.chart-height').val(myHeight);
-	graphIt(myWidth, myHeight, data, dots);
+	setTimeout(function(){
+		graphIt(myWidth, myHeight, data, dots);
+	}, 2000)
 	
 	
 });
