@@ -35,9 +35,9 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-var uri = process.env.MONGOLAB_URI || process.env.DEVDB;
+var uri = process.env.MONGOLAB_URI;// || process.env.DEVDB;
 
-mongoose.connect(uri);
+mongoose.connect(uri/*, {authMechanism: 'ScramSHA1'}*/);
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
 
@@ -51,9 +51,10 @@ var sess = {
 	})
 }
 app.use(cookieParser(sess.secret));
-if (app.get('env') === 'production') {
+app.set('trust proxy', 1);
+/*if (app.get('env') === 'production') {
 	app.set('trust proxy', 1) // trust first proxy
-}
+}*/
 
 app.use(session(sess))
 

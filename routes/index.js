@@ -1,8 +1,6 @@
 var express = require('express');
 var Stock = require('../models/stocks');
 var multer  = require('multer');
-//var waterfall = require('async-waterfall');
-//var timeFormat = require('d3-time-format');
 var moment = require('moment');
 var _ = require('underscore');
 var url = require('url');
@@ -18,8 +16,6 @@ dotenv.load();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-	//var start_date = req.body.start_date;
-	//var end_date = req.body.end_date;
 	var data = req.app.locals.data;
 	var dots = req.app.locals.dots;
 	console.log(req.app.locals)
@@ -81,7 +77,6 @@ router.get('/', function(req, res, next) {
 					for (var i in result) {
 						all_stocks.push(result[i])	
 					}
-					//console.log(new_lookup)
 					next(null, all_stocks);
 				})
 				//appends new document objects, each with empty stock_array, to collection array
@@ -89,7 +84,6 @@ router.get('/', function(req, res, next) {
 			function(results, next){
 				//insert new or update existing data in each document's stock_array
 				//get new data for all via getStockInfo function
-				//TODO: switch for new date inputs
 				var all_stocks = results;
 				var lookup = []
 				for (var i in all_stocks) {
@@ -113,12 +107,11 @@ router.get('/', function(req, res, next) {
 						}
 						next(null, results)
 					});
-				}/*.bind({start_date: start_date, end_date: end_date})*/, function(err, result){
+				}, function(err, result){
 					if (err) {
 						next(err)
 					}
 					var prop = Object.getOwnPropertyNames(result)
-					//console.log(result)
 
 					for (i = 0; i < result.length; i++) {
 						var index = i;
@@ -215,7 +208,6 @@ router.delete('/delete/:symbol', function(req, res, next){
 			dots: dots
 		})
 	});
-	//res.redirect('/')
 });
 
 router.post('/add', upload.array(), function(req, res, next) {
@@ -323,10 +315,6 @@ router.post('/add', upload.array(), function(req, res, next) {
 		if (err) {
 			next(err)
 		}
-		/*return res.render('index', {
-			data: result,
-			dots: dots
-		})*/
 		return res.redirect('/')
 	});
 	
@@ -343,13 +331,11 @@ function getAllDb(lookup, next) {
 }
 
 function insertNew(all_stocks, next) {
-	//console.log(all_stocks)
 	for (var i in all_stocks) {
 		Stock.findOne({key: all_stocks[i].key}, function(err, stock){
 			if (err) {
 				console.log(err)
 			}
-			//console.log(stock)
 			if (!err && stock === null) {
 				var this_stock = new Stock({
 					name: all_stocks[i].name,
