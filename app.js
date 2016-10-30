@@ -42,7 +42,7 @@ db.on('error', console.error.bind(console, 'connection error:'));
 var sess = {
   	secret: 'keyboard cat',
 	resave: false,
-	saveUninitialized: false,
+	saveUninitialized: true,
 	cookie: {},
 	store: new MongoStore({
 		mongooseConnection: db
