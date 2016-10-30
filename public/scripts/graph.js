@@ -161,12 +161,6 @@ $(document).ready(function() {
 	}
 	$('.chart-width').val(myWidth);
 	$('.chart-height').val(myHeight);
-	
-	/*var start_date = $('.start_date').val();      
-	var end_date = $('.end_date').val();
-	  */
-	//var incoming = $('.data-json').val();
-	//var incoming_dots = $('.data-json-dots').val();
 	graphIt(myWidth, myHeight);
 	
 	
@@ -177,14 +171,6 @@ $(document).on('click', '.remove', function(){
 		url: '/delete/' + thiskey,
 		type: 'DELETE',
 		success: function() {
-			//var width = $('.chart-width').val();
-			//var height = $('.chart-height').val();
-			//var incoming = result.data;
-			//var incoming_dots = result.dots;
-			//$('.data-json').val(result.data);
-			//$('.data-json-dots').val(result.dots);
-			//location.reload(true)
-			//$(window).load(graphIt(width, height, incoming, incoming_dots))
 			$('#stock_tab_'+thiskey+'').remove();
 			location.reload(true)
 		}
