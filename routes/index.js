@@ -14,26 +14,40 @@ var upload = multer();
 dotenv.load();
 
 router.get('/', function(req, res) {
-	getDataDots(req, function(response) {
-		req.session.data = response.data;
-		req.session.dots = response.dots;
+	if (req.app.locals.data) {
 		return res.render('index', {
-			data: response.data,
-			dots: response.dots
+			data: req.app.locals.data,
+			dots: req.app.locals.dots
 		})
-	})
+	} else {
+		getDataDots(req, function(response) {
+			req.session.data = response.data;
+			req.session.dots = response.dots;
+			return res.render('index', {
+				data: response.data,
+				dots: response.dots
+			})
+		})
+	}
 })
 
 /* GET home page. */
 router.get('/api', function(req, res) {
-	getDataDots(req, function(response) {
-		req.session.data = response.data;
-		req.session.dots = response.dots;
-		res.json({
-			data: response.data,
-			dots: response.dots
+	if (req.app.locals.data) {
+		return res.render('index', {
+			data: req.app.locals.data,
+			dots: req.app.locals.dots
+		});
+	} else {
+		getDataDots(req, function(response) {
+			req.session.data = response.data;
+			req.session.dots = response.dots;
+			res.json({
+				data: response.data,
+				dots: response.dots
+			})
 		})
-	})
+	}
 });
 
 router.delete('/delete/:symbol', function(req, res, next){
@@ -62,7 +76,7 @@ router.delete('/delete/:symbol', function(req, res, next){
 			var dots = [];
 			for(var i in result) {
 				for (var j in result[i].stock_array) {
-					result[i].stock_array[j].date = moment(result[i].stock_array[j].date);
+					result[i].stock_array[j].date = moment(result[i].stock_array[j].date).utc().format();
 					dots.push(result[i].stock_array[j])
 				}				
 			}				
@@ -116,8 +130,8 @@ router.post('/add', upload.array(), function(req, res, next) {
 			var start_date = req.body.start_date;
 			var end_date = req.body.end_date;
 			if (start_date === null || start_date === undefined || start_date === '') {
-				end_date = moment().format();
-				start_date = moment().subtract(1, 'year').format();
+				end_date = moment().utc().format();
+				start_date = moment().subtract(1, 'year').utc().format();
 			}
 			req.app.locals.start_date = start_date;
 			req.app.locals.end_date = end_date;
@@ -174,12 +188,12 @@ router.post('/add', upload.array(), function(req, res, next) {
 			var dots = [];
 			for(var i in result) {
 				for (var j in result[i].stock_array) {
-					result[i].stock_array[j].date = moment(result[i].stock_array[j].date);
+					result[i].stock_array[j].date = moment(result[i].stock_array[j].date).utc().format();
 					dots.push(result[i].stock_array[j])
 				}				
 			}
-			req.app.locals.data = result;
-			req.app.locals.dots = dots;
+			req.session.data = result;
+			req.session.dots = dots;
 			next(null)
 		}
 	], function (err) {
@@ -264,8 +278,8 @@ function getDataDots(req, next) {
 			var start_date = req.app.locals.start_date;
 			var end_date = req.app.locals.end_date;
 			if (start_date === null || start_date === undefined || start_date === '') {
-				end_date = moment().format();
-				start_date = moment().subtract(1, 'year').format();
+				end_date = moment().utc().format();
+				start_date = moment().subtract(1, 'year').utc().format();
 			}
 			async.map(lookup, function(query, next) {
 
@@ -315,13 +329,10 @@ function getDataDots(req, next) {
 		var dots = [];
 		for(var i in results) {
 			for (var j in results[i].stock_array) {
-				results[i].stock_array[j].date = moment(results[i].stock_array[j].date);
+				results[i].stock_array[j].date = moment(results[i].stock_array[j].date).utc().format();
 				dots.push(results[i].stock_array[j])
 			}				
 		}
-		
-		req.session.data = results;
-		req.session.dots = dots;
 		return next({
 			data: results,
 			dots: dots
